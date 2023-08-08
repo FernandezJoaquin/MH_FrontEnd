@@ -1,11 +1,15 @@
 package com.mindhub.homebanking;
 
+import com.mindhub.homebanking.models.Account;
 import com.mindhub.homebanking.models.Client;
+import com.mindhub.homebanking.repositories.AccountRepository;
 import com.mindhub.homebanking.repositories.ClientRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+
+import java.time.LocalDate;
 
 @SpringBootApplication
 public class HomebankingApplication {
@@ -14,10 +18,23 @@ public class HomebankingApplication {
 		SpringApplication.run(HomebankingApplication.class, args);
 	}
 	@Bean
-	public CommandLineRunner initData(ClientRepository repository) {
+	public CommandLineRunner initData(ClientRepository cRepository, AccountRepository aRepository) {
 		return (args) -> {
 			// save a couple of customers
-			repository.save(new Client("Melba", "Morel", "melba@mindhub.com"));
+			Client cl = new Client("Melba", "Morel", "melba@mindhub.com");
+			Account ac =new Account("VIN001", LocalDate.now(),5000);
+			cRepository.save(cl);
+			cl.addAccount(ac);
+			aRepository.save(ac);
+			ac = new Account("VIN002", LocalDate.now().plusDays(1),7500);
+			cl.addAccount(ac);
+			aRepository.save(ac);
+			cl = new Client("Zelba", "Morel", "Zelba@mindhub.com");
+			cRepository.save(cl);
+			ac = new Account("VIN003",LocalDate.now(),800);
+			cl.addAccount(ac);
+			aRepository.save(ac);
+
 		};
 	}
 }
