@@ -2,8 +2,11 @@ package com.mindhub.homebanking;
 
 import com.mindhub.homebanking.models.Account;
 import com.mindhub.homebanking.models.Client;
+import com.mindhub.homebanking.models.Transaction;
+import com.mindhub.homebanking.models.TransactionType;
 import com.mindhub.homebanking.repositories.AccountRepository;
 import com.mindhub.homebanking.repositories.ClientRepository;
+import com.mindhub.homebanking.repositories.TransactionRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +21,7 @@ public class HomebankingApplication {
 		SpringApplication.run(HomebankingApplication.class, args);
 	}
 	@Bean
-	public CommandLineRunner initData(ClientRepository cRepository, AccountRepository aRepository) {
+	public CommandLineRunner initData(ClientRepository cRepository, AccountRepository aRepository,TransactionRepository tRepository ) {
 		return (args) -> {
 			// save a couple of customers
 			Client cl = new Client("Melba", "Morel", "melba@mindhub.com");
@@ -26,6 +29,9 @@ public class HomebankingApplication {
 			cRepository.save(cl);
 			cl.addAccount(ac);
 			aRepository.save(ac);
+			Transaction tr = new Transaction(TransactionType.DEBITO, 658,"algo");
+			ac.addTransactions(tr);
+			tRepository.save(tr);
 			ac = new Account("VIN002", LocalDate.now().plusDays(1),7500);
 			cl.addAccount(ac);
 			aRepository.save(ac);
