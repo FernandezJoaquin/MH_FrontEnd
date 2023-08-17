@@ -37,10 +37,6 @@ public class Loan {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getName() {
         return name;
     }
@@ -65,12 +61,13 @@ public class Loan {
         this.payments = payments;
     }
 
-    public void addClientLoan(ClientLoan clientLoan){
-        clientLoan.setLoan(this);
-        clientLoans.add(clientLoan);
-    }
     @JsonIgnore
     public List<Client> getClients(){
         return clientLoans.stream().map(ClientLoan::getClient).collect(toList());
+    }
+
+    public void addClientLoan(ClientLoan clientLoan){
+        clientLoan.setLoan(this);
+        clientLoans.add(clientLoan);
     }
 }

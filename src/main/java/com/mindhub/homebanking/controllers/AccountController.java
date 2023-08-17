@@ -18,11 +18,14 @@ public class AccountController {
 
     @Autowired
     private AccountRepository accountRepo;
-    public  AccountController(){}
 
-    public AccountController(AccountRepository accountRepo) { this.accountRepo = accountRepo; }
+    public AccountController() {
+        this.accountRepo = accountRepo;
+    }
 
-    public AccountRepository getAccountRepo() { return accountRepo; }
+    public AccountRepository getAccountRepo() {
+        return accountRepo;
+    }
 
     @RequestMapping("/accounts")
     public List<AccountDTO> getClients(){

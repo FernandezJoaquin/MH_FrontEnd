@@ -19,10 +19,7 @@ public class ClientController {
     @Autowired
     ClientRepository clientRepo;
     private Optional<Client> optionalClient;
-    public ClientController(){}
-    public ClientController(ClientRepository clientRepo) {
-        this.clientRepo = clientRepo;
-    }
+    public ClientController(){this.clientRepo = clientRepo;}
 
     public ClientRepository getClientRepo() {
         return clientRepo;

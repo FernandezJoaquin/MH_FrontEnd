@@ -18,8 +18,9 @@ public class HomebankingApplication {
 		SpringApplication.run(HomebankingApplication.class, args);
 	}
 	@Bean
-	public CommandLineRunner initData(ClientRepository cRepository, AccountRepository aRepository,
-									  TransactionRepository tRepository, LoanRepository lRepository, ClientLoanRepository clRepo) {
+	public CommandLineRunner initData(ClientRepository clientRepository, AccountRepository accountRepository,
+									  TransactionRepository transactionRepository, LoanRepository loanRepository,
+									  ClientLoanRepository clientLoanRepository, CardRepository cardRepository) {
 		return (args) -> {
 			// save a couple of customers
 			Client cl = new Client("Melba", "Morel", "melba@mindhub.com");
@@ -28,30 +29,39 @@ public class HomebankingApplication {
 			Loan personal = new Loan("Personal", 100000, new ArrayList<>(List.of(6,12,24)));
 			Loan auto = new Loan("Automotriz", 300000, new ArrayList<>(List.of(6,12,24,36)));
 			ClientLoan clientLoan = new ClientLoan(400000.0,60,cl,hipo);
-			cRepository.save(cl);
-			lRepository.save(hipo);
-			lRepository.save(personal);
-			lRepository.save(auto);
-			clRepo.save(clientLoan);
+			Card melbaCardG = new Card(cl,CardType.DEBIT, 2314564, 547,CardColor.GOLD);
+			Card melbaCardT = new Card(cl,CardType.DEBIT, 2142564, 547,CardColor.TITANIUM);
+			clientRepository.save(cl);
+			loanRepository.save(hipo);
+			loanRepository.save(personal);
+			loanRepository.save(auto);
+			clientLoanRepository.save(clientLoan);
+			cl.addCard(melbaCardT);
+			cl.addCard(melbaCardG);
 			clientLoan = new ClientLoan(50000.0,12,cl,personal);
-			clRepo.save(clientLoan);
+			clientLoanRepository.save(clientLoan);
 			cl.addAccount(ac);
-			aRepository.save(ac);
+			accountRepository.save(ac);
 			Transaction tr = new Transaction(TransactionType.DEBITO, 658,"algo");
 			ac.addTransactions(tr);
-			tRepository.save(tr);
+			transactionRepository.save(tr);
 			ac = new Account("VIN002", LocalDate.now().plusDays(1),7500);
 			cl.addAccount(ac);
-			aRepository.save(ac);
+			accountRepository.save(ac);
 			cl = new Client("Zelba", "Morel", "Zelba@mindhub.com");
-			cRepository.save(cl);
+			clientRepository.save(cl);
 			clientLoan = new ClientLoan(100000.0,24,cl,personal);
-			clRepo.save(clientLoan);
+			clientLoanRepository.save(clientLoan);
 			clientLoan = new ClientLoan(200000.0,36,cl,auto);
-			clRepo.save(clientLoan);
+			clientLoanRepository.save(clientLoan);
 			ac = new Account("VIN003",LocalDate.now(),800);
 			cl.addAccount(ac);
-			aRepository.save(ac);
+			accountRepository.save(ac);
+			Card zelbaCardS = new Card(cl,CardType.DEBIT, 9714564, 987,CardColor.SILVER);
+			cardRepository.save(melbaCardG);
+			cardRepository.save(melbaCardT);
+			cardRepository.save(zelbaCardS);
+			cl.addCard(zelbaCardS);
 
 		};
 	}

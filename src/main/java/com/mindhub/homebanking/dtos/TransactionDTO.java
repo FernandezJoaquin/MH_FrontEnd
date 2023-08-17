@@ -24,15 +24,27 @@ public class TransactionDTO {
         this.account = transaction.getAccount();
     }
 
-    public Long getId() {return id;}
+    public Long getId() {
+        return id;
+    }
 
-    public TransactionType getType() {return type;}
+    public TransactionType getType() {
+        return type;
+    }
 
-    public double getAmount() {return amount;}
+    public double getAmount() {
+        return amount;
+    }
 
-    public String getDescription() {return description;}
+    public String getDescription() {
+        return description;
+    }
 
-    public LocalDateTime getDate() {return date;}
+    public LocalDateTime getDate() {
+        return date;
+    }
 
-    public Account getAccount() {return account;}
+    public Account getAccount() {
+        return account;
+    }
 }
