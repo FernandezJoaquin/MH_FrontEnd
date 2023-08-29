@@ -27,14 +27,18 @@ public class HomebankingApplication {
 									  ClientLoanRepository clientLoanRepository, CardRepository cardRepository) {
 		return (args) -> {
 			// save a couple of customers
-			Client cl = new Client("Melba", "Morel", "melba@mindhub.com", passwordEncoder.encode("lala"));
+			Client admin = new Client("Admin","01","admin01@mindhub.com",
+					passwordEncoder.encode("neuring"),UserRole.ADMIN);
+			clientRepository.save(admin);
+			Client cl = new Client("Melba", "Morel", "melba@mindhub.com",
+					passwordEncoder.encode("lala"), UserRole.CLIENT);
 			Account ac =new Account("VIN001", LocalDate.now(),5000);
 			Loan hipo = new Loan("Hipotecario", 500000, new ArrayList<>(List.of(12,24,36,48,60)));
 			Loan personal = new Loan("Personal", 100000, new ArrayList<>(List.of(6,12,24)));
 			Loan auto = new Loan("Automotriz", 300000, new ArrayList<>(List.of(6,12,24,36)));
 			ClientLoan clientLoan = new ClientLoan(400000.0,60,cl,hipo);
-			Card melbaCardG = new Card(cl,CardType.DEBIT, 2314564, 547,CardColor.GOLD);
-			Card melbaCardT = new Card(cl,CardType.DEBIT, 2142564, 547,CardColor.TITANIUM);
+			Card melbaCardG = new Card(cl,CardType.DEBIT, "2314564", "547",CardColor.GOLD);
+			Card melbaCardT = new Card(cl,CardType.DEBIT, "2142564", "547",CardColor.TITANIUM);
 			clientRepository.save(cl);
 			loanRepository.save(hipo);
 			loanRepository.save(personal);
@@ -52,7 +56,8 @@ public class HomebankingApplication {
 			ac = new Account("VIN002", LocalDate.now().plusDays(1),7500);
 			cl.addAccount(ac);
 			accountRepository.save(ac);
-			cl = new Client("Zelba", "Morel", "zelba@mindhub.com", passwordEncoder.encode("lala"));
+			cl = new Client("Zelba", "Morel", "zelba@mindhub.com",
+					passwordEncoder.encode("lala"),UserRole.CLIENT);
 			clientRepository.save(cl);
 			clientLoan = new ClientLoan(100000.0,24,cl,personal);
 			clientLoanRepository.save(clientLoan);
@@ -61,7 +66,7 @@ public class HomebankingApplication {
 			ac = new Account("VIN003",LocalDate.now(),800);
 			cl.addAccount(ac);
 			accountRepository.save(ac);
-			Card zelbaCardS = new Card(cl,CardType.DEBIT, 9714564, 987,CardColor.SILVER);
+			Card zelbaCardS = new Card(cl,CardType.DEBIT, "9714564", "987",CardColor.SILVER);
 			cardRepository.save(melbaCardG);
 			cardRepository.save(melbaCardT);
 			cardRepository.save(zelbaCardS);

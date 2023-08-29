@@ -21,15 +21,20 @@ public class WebAuthorization {
 
             http.authorizeRequests()
                     .antMatchers("/web/index.html","/web/css/*","/web/js/*","/web/img/*").permitAll()
-
                     .antMatchers(HttpMethod.POST,"/api/clients").permitAll()
-                    .antMatchers("/admin/**").hasAuthority("ADMIN")
 
-                    .antMatchers("/**").hasAuthority("CLIENT");
+                    .antMatchers("/web/**","/rest/**","/api/**","/h2-console/**").hasAuthority("ADMIN")
+                    .antMatchers(HttpMethod.POST,"/api/clients/current/accounts",
+                            "/api/clients/current/cards").hasAuthority("ADMIN")
+
+                    .antMatchers("/web/*").hasAuthority("CLIENT")
+                    .antMatchers(HttpMethod.POST,"/api/clients/current/accounts",
+                            "/api/clients/current/cards").hasAuthority("CLIENT");
 
 
 
-            http.formLogin()
+
+        http.formLogin()
 
                     .usernameParameter("email")
 

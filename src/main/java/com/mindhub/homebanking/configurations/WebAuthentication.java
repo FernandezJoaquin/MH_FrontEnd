@@ -29,7 +29,7 @@ public class WebAuthentication extends GlobalAuthenticationConfigurerAdapter {
 
                 return new User(client.getEmail(), client.getPassword(),
 
-                        AuthorityUtils.createAuthorityList("CLIENT"));
+                        AuthorityUtils.createAuthorityList(String.valueOf(client.getRole())));
 
             } else {
 
