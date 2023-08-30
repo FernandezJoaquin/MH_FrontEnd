@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -25,7 +24,7 @@ public class Transaction {
     public Transaction(){}
     public Transaction(TransactionType type, double amount, String description){
         this.type = type;
-        if(type==TransactionType.DEBITO){
+        if(type==TransactionType.DEBIT){
             this.amount = -amount;
         }else{this.amount = amount;}
         this.description = description;

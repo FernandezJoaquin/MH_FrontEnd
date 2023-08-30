@@ -50,7 +50,7 @@ public class HomebankingApplication {
 			clientLoanRepository.save(clientLoan);
 			cl.addAccount(ac);
 			accountRepository.save(ac);
-			Transaction tr = new Transaction(TransactionType.DEBITO, 658,"algo");
+			Transaction tr = new Transaction(TransactionType.DEBIT, 658,"algo");
 			ac.addTransactions(tr);
 			transactionRepository.save(tr);
 			ac = new Account("VIN002", LocalDate.now().plusDays(1),7500);

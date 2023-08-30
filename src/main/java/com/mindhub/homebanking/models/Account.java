@@ -69,6 +69,7 @@ public class Account {
 
     public void addTransactions(Transaction transaction){
         transaction.setAccount(this);
+        this.setBalance(this.getBalance()+transaction.getAmount());
         this.transactions.add(transaction);
     }
 

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -45,20 +47,27 @@ public class CardController {
     @RequestMapping(path = "/clients/current/cards", method = RequestMethod.POST)
     public ResponseEntity<Object> addCard(@RequestParam CardType cardType, @RequestParam CardColor cardColor, Authentication authentication) {
         Client client = clientRepo.findByEmail(authentication.getName());
-        if (client.getAccounts().size() >= 3) {
-            return new ResponseEntity<>("Max cards reached", HttpStatus.FORBIDDEN);
+        Set<Card> creditCards = client.getCards().stream().filter(card -> card.getType() == CardType.CREDIT).collect(Collectors.toSet());
+        Set<Card> debitCards = client.getCards().stream().filter(card -> card.getType() == CardType.DEBIT).collect(Collectors.toSet());
+        if (cardType == CardType.CREDIT & creditCards.size() >= 3) {
+                return new ResponseEntity<>("Max credit cards reached", HttpStatus.FORBIDDEN);
         }
-        Card card = new Card(client, cardType, random(1000,9999)+"-"+random(1000,9999)+"-"+random(1000,9999)+"-"+random(1000,9999),
-                random(100,999), cardColor);
+        if (cardType == CardType.DEBIT && debitCards.size() >= 3) {
+            return new ResponseEntity<>("Max debit cards reached", HttpStatus.FORBIDDEN);
+        }
+
+        Card card = new Card(client, cardType, random(1000, 9999) + "-" + random(1000, 9999) + "-" + random(1000, 9999) + "-" + random(1000, 9999),
+                random(100, 999), cardColor);
         cardRepo.save(card);
         client.addCard(card);
         return new ResponseEntity<>(HttpStatus.CREATED);
 
     }
-    public String random(int min, int max) {
-             int rando= (int) ((Math.random() * (max - min)) + min);
-             return Integer.toString(rando);
-    }
 
+    public String random(int min, int max) {
+        int rando = (int) ((Math.random() * (max - min)) + min);
+        return Integer.toString(rando);
+    }
 }
+
 

@@ -47,13 +47,18 @@ public class AccountController {
         return new AccountDTO(accountRepo.findById(id).orElse(null));
     }
 
+    @RequestMapping(path = "/clients/current/accounts", method = RequestMethod.GET)
+    public List<AccountDTO> getAccounts(Authentication authentication){
+        return  clientRepo.findByEmail(authentication.getName()).getAccounts().stream().map(AccountDTO::new).collect(toList());
+    }
+
     @RequestMapping(path = "/clients/current/accounts", method = RequestMethod.POST)
     public ResponseEntity<Object> addAccount(Authentication authentication){
         Client client =clientRepo.findByEmail(authentication.getName());
         if(client.getAccounts().size() >= 3){
             return new ResponseEntity<>("Max accounts reached",HttpStatus.FORBIDDEN);
         }
-        Account account = new Account("VIN-"+random(0,99999999), LocalDate.now(),0);
+        Account account = new Account("VIN"+random(0,99999999), LocalDate.now(),0);
         client.addAccount(account);
         accountRepo.save(account);
         return new ResponseEntity<>(HttpStatus.CREATED);

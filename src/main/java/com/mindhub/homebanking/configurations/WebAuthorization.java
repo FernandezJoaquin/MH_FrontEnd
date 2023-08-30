@@ -23,13 +23,12 @@ public class WebAuthorization {
                     .antMatchers("/web/index.html","/web/css/*","/web/js/*","/web/img/*").permitAll()
                     .antMatchers(HttpMethod.POST,"/api/clients").permitAll()
 
-                    .antMatchers("/web/**","/rest/**","/api/**","/h2-console/**").hasAuthority("ADMIN")
-                    .antMatchers(HttpMethod.POST,"/api/clients/current/accounts",
-                            "/api/clients/current/cards").hasAuthority("ADMIN")
+                    .antMatchers("/web/**","/rest/**","/h2-console/**").hasAuthority("ADMIN")
 
-                    .antMatchers("/web/*").hasAuthority("CLIENT")
+                    .antMatchers("/web/**").hasAuthority("CLIENT")
                     .antMatchers(HttpMethod.POST,"/api/clients/current/accounts",
-                            "/api/clients/current/cards").hasAuthority("CLIENT");
+                            "/api/clients/current/cards","/api/transactions").hasAnyAuthority("ADMIN","CLIENT");
+
 
 
 
