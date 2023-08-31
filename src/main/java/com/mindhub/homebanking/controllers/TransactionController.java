@@ -46,12 +46,12 @@ public class TransactionController {
         if(accountRepo.findByNumber(fromAccountNumber).getBalance() < amount){
             return new ResponseEntity<>("Stated amount is greater than the account's balance", HttpStatus.FORBIDDEN);
         }
-        Transaction transactionStarter = new Transaction(TransactionType.DEBIT, amount, description);
-        Transaction transactionEnder = new Transaction(TransactionType.CREDIT, amount, description);
-        accountRepo.findByNumber(fromAccountNumber).addTransactions(transactionStarter);
-        accountRepo.findByNumber(toAccountNumber).addTransactions(transactionEnder);
-        transactionRepo.save(transactionEnder);
-        transactionRepo.save(transactionStarter);
+        Transaction transactionStart = new Transaction(TransactionType.DEBIT, amount, accountRepo.findByNumber(fromAccountNumber).getNumber()+":"+description);
+        Transaction transactionEnd = new Transaction(TransactionType.CREDIT, amount, accountRepo.findByNumber(toAccountNumber).getNumber()+":"+description);
+        accountRepo.findByNumber(fromAccountNumber).addTransactions(transactionStart);
+        accountRepo.findByNumber(toAccountNumber).addTransactions(transactionEnd);
+        transactionRepo.save(transactionEnd);
+        transactionRepo.save(transactionStart);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
