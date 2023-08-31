@@ -27,10 +27,6 @@ public class CardController {
     @Autowired
     ClientRepository clientRepo;
 
-    public CardController() {
-        this.cardRepo = cardRepo;
-    }
-
     public CardRepository getCardRepo() {
         return cardRepo;
     }
@@ -46,6 +42,15 @@ public class CardController {
 
     @RequestMapping(path = "/clients/current/cards", method = RequestMethod.POST)
     public ResponseEntity<Object> addCard(@RequestParam CardType cardType, @RequestParam CardColor cardColor, Authentication authentication) {
+        if(clientRepo.findByEmail(authentication.getName()) == null){
+            return new ResponseEntity<>("This client doesn't exist", HttpStatus.FORBIDDEN);
+        }
+        if (cardType == null) {
+            return new ResponseEntity<>("Card type field is empty", HttpStatus.FORBIDDEN);
+        }
+        if (cardColor == null) {
+            return new ResponseEntity<>("Card color field is empty", HttpStatus.FORBIDDEN);
+        }
         Client client = clientRepo.findByEmail(authentication.getName());
         Set<Card> creditCards = client.getCards().stream().filter(card -> card.getType() == CardType.CREDIT).collect(Collectors.toSet());
         Set<Card> debitCards = client.getCards().stream().filter(card -> card.getType() == CardType.DEBIT).collect(Collectors.toSet());
@@ -55,9 +60,11 @@ public class CardController {
         if (cardType == CardType.DEBIT && debitCards.size() >= 3) {
             return new ResponseEntity<>("Max debit cards reached", HttpStatus.FORBIDDEN);
         }
-
-        Card card = new Card(client, cardType, random(1000, 9999) + "-" + random(1000, 9999) + "-" + random(1000, 9999) + "-" + random(1000, 9999),
-                random(100, 999), cardColor);
+        String cardNumber;
+        do {
+            cardNumber = random(0, 9999) + "-" + random(0, 9999) + "-" + random(0, 9999) + "-" + random(0, 9999);
+        }while (cardRepo.findByNumber(cardNumber) != null);
+        Card card = new Card(client, cardType, cardNumber , random(0, 999), cardColor);
         cardRepo.save(card);
         client.addCard(card);
         return new ResponseEntity<>(HttpStatus.CREATED);

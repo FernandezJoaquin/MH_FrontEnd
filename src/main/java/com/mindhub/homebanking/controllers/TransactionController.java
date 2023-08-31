@@ -24,21 +24,22 @@ public class TransactionController {
 
     @Autowired
     AccountRepository accountRepo;
-    public TransactionController(){
-        this.transactionRepo = transactionRepo;
-    }
+
     @Transactional
     @RequestMapping(path = "/transactions", method = RequestMethod.POST)
     public ResponseEntity<Object> makeTransaction(@RequestParam String fromAccountNumber, @RequestParam String toAccountNumber, @RequestParam Double amount, @RequestParam String description,
                                                   Authentication authentication){
         if(accountRepo.findByNumber(fromAccountNumber).getClient().getEmail() != authentication.getName()){
-            return new ResponseEntity<>("You don't own the initial account", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("You don't own the sending account", HttpStatus.FORBIDDEN);
         }
         if(accountRepo.findByNumber(toAccountNumber) == null){
-            return new ResponseEntity<>("Receiver account doesn't exist", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("Receiving account doesn't exist", HttpStatus.FORBIDDEN);
         }
-        if(amount.isNaN() || description.isBlank()){
-            return new ResponseEntity<>("One of the fields is incomplete", HttpStatus.FORBIDDEN);
+        if(amount.isNaN() || amount == 0){
+            return new ResponseEntity<>("Amount field is incomplete", HttpStatus.FORBIDDEN);
+        }
+        if(description.isBlank()){
+            return  new ResponseEntity<>("Description field is empty",HttpStatus.FORBIDDEN);
         }
         if(Objects.equals(fromAccountNumber, toAccountNumber)){
             return new ResponseEntity<>("Sender and receiver are the same", HttpStatus.FORBIDDEN);

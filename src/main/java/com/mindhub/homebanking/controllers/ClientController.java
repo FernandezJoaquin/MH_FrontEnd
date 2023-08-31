@@ -27,8 +27,8 @@ public class ClientController {
 
     @Autowired
     AccountRepository accountRepo;
-    private Optional<Client> optionalClient;
-    public ClientController(){this.clientRepo = clientRepo;}
+
+    public ClientController(){}
 
     public ClientRepository getClientRepo() {
         return clientRepo;
@@ -49,15 +49,27 @@ public class ClientController {
     @RequestMapping(path = "/clients", method = RequestMethod.POST)
     public ResponseEntity<Object> register(@RequestParam String firstName,
     @RequestParam String lastName, @RequestParam String email, @RequestParam String password) {
-
-        if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            return new ResponseEntity<>("Missing data", HttpStatus.FORBIDDEN);
+        if (firstName.isEmpty()) {
+            return new ResponseEntity<>("First name field is empty", HttpStatus.FORBIDDEN);
+        }
+        if (lastName.isEmpty()) {
+            return new ResponseEntity<>("Last name field is empty", HttpStatus.FORBIDDEN);
+        }
+        if (email.isEmpty()) {
+            return new ResponseEntity<>("Email field is empty", HttpStatus.FORBIDDEN);
+        }
+        if (password.isEmpty()) {
+            return new ResponseEntity<>("Password field is empty", HttpStatus.FORBIDDEN);
         }
         if (clientRepo.findByEmail(email) != null) {
             return new ResponseEntity<>("Name already in use", HttpStatus.FORBIDDEN);
         }
         Client client = new Client(firstName, lastName, email, passwordEncoder.encode(password), UserRole.CLIENT);
-        Account account = new Account("VIN-"+random(0,99999999), LocalDate.now(),0);
+        String accountNumber;
+        do {
+            accountNumber = "VIN"+random(0,99999999);
+        }while(accountRepo.findByNumber(accountNumber) != null);
+        Account account = new Account(accountNumber, LocalDate.now(),0);
         clientRepo.save(client);
         client.addAccount(account);
         accountRepo.save(account);

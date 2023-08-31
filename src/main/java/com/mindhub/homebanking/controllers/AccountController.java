@@ -30,10 +30,6 @@ public class AccountController {
     @Autowired
     private ClientRepository clientRepo;
 
-    public AccountController() {
-        this.accountRepo = accountRepo;
-    }
-
     public AccountRepository getAccountRepo() {
         return accountRepo;
     }
@@ -54,11 +50,18 @@ public class AccountController {
 
     @RequestMapping(path = "/clients/current/accounts", method = RequestMethod.POST)
     public ResponseEntity<Object> addAccount(Authentication authentication){
+        if(clientRepo.findByEmail(authentication.getName()) == null){
+            return new ResponseEntity<>("This client doesn't exist",HttpStatus.FORBIDDEN);
+        }
         Client client =clientRepo.findByEmail(authentication.getName());
         if(client.getAccounts().size() >= 3){
             return new ResponseEntity<>("Max accounts reached",HttpStatus.FORBIDDEN);
         }
-        Account account = new Account("VIN"+random(0,99999999), LocalDate.now(),0);
+        String accountNumber;
+        do {
+            accountNumber = "VIN"+random(0,99999999);
+        }while(accountRepo.findByNumber(accountNumber) != null);
+        Account account = new Account(accountNumber, LocalDate.now(),0);
         client.addAccount(account);
         accountRepo.save(account);
         return new ResponseEntity<>(HttpStatus.CREATED);
