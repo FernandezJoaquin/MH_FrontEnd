@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Objects;
@@ -28,14 +29,13 @@ public class TransactionController {
     }
     @Transactional
     @RequestMapping(path = "/transactions", method = RequestMethod.POST)
-    public ResponseEntity<Object> makeTransaction(String fromAccountNumber,String toAccountNumber, Double amount,String description,
+    public ResponseEntity<Object> makeTransaction(@RequestParam String fromAccountNumber, @RequestParam String toAccountNumber, @RequestParam Double amount, @RequestParam String description,
                                                   Authentication authentication){
         if(accountRepo.findByNumber(fromAccountNumber).getClient().getEmail() != authentication.getName()){
-            return new ResponseEntity<>("Sender account doesn't exist", HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>("You don't own the initial account", HttpStatus.FORBIDDEN);
         }
         if(accountRepo.findByNumber(toAccountNumber) == null){
             return new ResponseEntity<>("Receiver account doesn't exist", HttpStatus.FORBIDDEN);
-
         }
         if(amount.isNaN() || description.isBlank()){
             return new ResponseEntity<>("One of the fields is incomplete", HttpStatus.FORBIDDEN);
@@ -46,8 +46,8 @@ public class TransactionController {
         if(accountRepo.findByNumber(fromAccountNumber).getBalance() < amount){
             return new ResponseEntity<>("Stated amount is greater than the account's balance", HttpStatus.FORBIDDEN);
         }
-        Transaction transactionStart = new Transaction(TransactionType.DEBIT, amount, accountRepo.findByNumber(fromAccountNumber).getNumber()+":"+description);
-        Transaction transactionEnd = new Transaction(TransactionType.CREDIT, amount, accountRepo.findByNumber(toAccountNumber).getNumber()+":"+description);
+        Transaction transactionStart = new Transaction(TransactionType.DEBIT, amount, accountRepo.findByNumber(toAccountNumber).getNumber()+":"+description);
+        Transaction transactionEnd = new Transaction(TransactionType.CREDIT, amount, accountRepo.findByNumber(fromAccountNumber).getNumber()+":"+description);
         accountRepo.findByNumber(fromAccountNumber).addTransactions(transactionStart);
         accountRepo.findByNumber(toAccountNumber).addTransactions(transactionEnd);
         transactionRepo.save(transactionEnd);
