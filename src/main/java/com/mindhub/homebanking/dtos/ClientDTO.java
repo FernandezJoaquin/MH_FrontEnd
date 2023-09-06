@@ -1,15 +1,12 @@
 package com.mindhub.homebanking.dtos;
 
-import com.mindhub.homebanking.models.Account;
 import com.mindhub.homebanking.models.Client;
-import com.mindhub.homebanking.dtos.AccountDTO;
 import com.mindhub.homebanking.models.UserRole;
 
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 
 public class ClientDTO {
     private Long id;

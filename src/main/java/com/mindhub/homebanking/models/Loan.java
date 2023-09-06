@@ -33,6 +33,12 @@ public class Loan {
         this.payments = payments;
     }
 
+    public Loan(Loan loan) {
+        this.name = loan.getName();
+        this.maxAmount = loan.getMaxAmount();
+        this.payments = loan.getPayments();
+    }
+
     public Long getId() {
         return id;
     }
