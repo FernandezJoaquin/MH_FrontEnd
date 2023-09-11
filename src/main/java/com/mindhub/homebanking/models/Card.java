@@ -25,9 +25,7 @@ public class Card {
     private Client client;
     public Card(){}
 
-    public Card(Client cardholder, CardType type, String number, String cvv, CardColor color) {
-        this.client = cardholder;
-        this.cardholder = cardholder.getFirstName()+cardholder.getLastName();
+    public Card(CardType type, String number, String cvv, CardColor color) {
         this.type = type;
         this.number = number;
         this.cvv = cvv;
@@ -35,6 +33,7 @@ public class Card {
         this.fromDate = LocalDate.now();
         this.thruDate = LocalDate.now().plusYears(5);
     }
+
 
     public void setClient(Client client) {
         this.client = client;

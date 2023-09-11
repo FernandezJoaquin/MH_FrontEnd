@@ -2,13 +2,10 @@ package com.mindhub.homebanking.controllers;
 
 import com.mindhub.homebanking.dtos.LoanApplicationDTO;
 import com.mindhub.homebanking.dtos.LoanDTO;
-import com.mindhub.homebanking.models.ClientLoan;
-import com.mindhub.homebanking.models.Transaction;
-import com.mindhub.homebanking.models.TransactionType;
-import com.mindhub.homebanking.repositories.AccountRepository;
-import com.mindhub.homebanking.repositories.ClientLoanRepository;
-import com.mindhub.homebanking.repositories.LoanRepository;
-import com.mindhub.homebanking.repositories.TransactionRepository;
+import com.mindhub.homebanking.models.*;
+import com.mindhub.homebanking.services.AccountService;
+import com.mindhub.homebanking.services.LoanService;
+import com.mindhub.homebanking.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,29 +17,23 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Objects;
 
-import static java.util.stream.Collectors.toList;
 
 @RestController
 @RequestMapping("/api")
 public class LoanController {
     @Autowired
-    LoanRepository loanRepo;
+    LoanService loanService;
     @Autowired
-    AccountRepository accountRepo;
+    AccountService accountService;
     @Autowired
-    TransactionRepository transactionRepo;
-    @Autowired
-    ClientLoanRepository clientLoanRepo;
+    TransactionService transactionService;
 
     public LoanController() {}
-    public LoanRepository getLoanRepo(){
-        return loanRepo;
-    }
+
     @RequestMapping("/loans")
     public List<LoanDTO> getLoans(){
-        return loanRepo.findAll().stream().map(LoanDTO::new).collect(toList());
+        return loanService.getLoans();
     }
     @Transactional
     @RequestMapping(path="/loans", method = RequestMethod.POST)
@@ -59,30 +50,32 @@ public class LoanController {
         if(loan.getAmount() <= 0){
             return new ResponseEntity<>("State an amount higher than 0", HttpStatus.FORBIDDEN);
         }
-        if(loanRepo.findById(loan.getLoanId()).isEmpty()){
+        if(loanService.loanCheck(loan.getLoanId())){
             return new ResponseEntity<>("The loan you are requesting doesn't exist", HttpStatus.FORBIDDEN);
         }
-        if(loan.getAmount() > loanRepo.findById(loan.getLoanId()).get().getMaxAmount() ){
+        Loan verifiedLoan = loanService.getLoanById(loan.getLoanId());
+        if(loan.getAmount() > verifiedLoan.getMaxAmount() ){
             return new ResponseEntity<>("Requested amount is higher than allowed", HttpStatus.FORBIDDEN);
         }
-        if(!loanRepo.findById(loan.getLoanId()).get().getPayments().contains(loan.getPayments())){
+        if(!verifiedLoan.getPayments().contains(loan.getPayments())){
             return new ResponseEntity<>("Choose one of the allowed number of payments", HttpStatus.FORBIDDEN);
         }
-        if(accountRepo.findByNumber(loan.getAccount()) == null){
+        if(accountService.getAccountByNumber(loan.getAccount()) == null){
             return new ResponseEntity<>("The account your want to credit doesn't exist ", HttpStatus.FORBIDDEN);
         }
-        if(accountRepo.findByNumber(loan.getAccount()).getClient().getEmail() != authentication.getName()){
+        Account verifiedAccount = accountService.getAccountByNumber(loan.getAccount());
+        if(verifiedAccount.getClient().getEmail() != authentication.getName()){
             return new ResponseEntity<>("You don't own this account", HttpStatus.FORBIDDEN);
         }
-        Transaction transaction = new Transaction(TransactionType.CREDIT, loan.getAmount(),
-                loanRepo.findById(loan.getLoanId()).get().getName()+":"+"Loan Aproved");
-        ClientLoan clientLoan = new ClientLoan(loan.getAmount()*1.2,loan.getPayments());
-        loanRepo.findById(loan.getLoanId()).get().addClientLoan(clientLoan);
-        accountRepo.findByNumber(loan.getAccount()).getClient().addClientLoan(clientLoan);
+        Transaction transaction = transactionService.generateNewTransactionLoan(TransactionType.CREDIT, loan.getAmount(),
+                verifiedLoan.getName());
+        ClientLoan clientLoan = loanService.generateNewClientLoan(loan.getAmount(),loan.getPayments());
+        verifiedLoan.addClientLoan(clientLoan);
+        verifiedAccount.getClient().addClientLoan(clientLoan);
 
-        accountRepo.findByNumber(loan.getAccount()).addTransactions(transaction);
-        transactionRepo.save(transaction);
-        clientLoanRepo.save(clientLoan);
+        verifiedAccount.addTransactions(transaction);
+        transactionService.saveTransaction(transaction);
+        loanService.saveClientLoan(clientLoan);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
 

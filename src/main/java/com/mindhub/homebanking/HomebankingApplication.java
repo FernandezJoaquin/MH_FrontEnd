@@ -15,8 +15,8 @@ import java.util.List;
 
 @SpringBootApplication
 public class HomebankingApplication {
-	@Autowired
-	PasswordEncoder passwordEncoder;
+	/*@Autowired
+	PasswordEncoder passwordEncoder;*/
 
 	public static void main(String[] args) {
 		SpringApplication.run(HomebankingApplication.class, args);
@@ -27,7 +27,7 @@ public class HomebankingApplication {
 									  ClientLoanRepository clientLoanRepository, CardRepository cardRepository) {
 		return (args) -> {
 			// save a couple of customers
-			Client admin = new Client("Admin","01","admin01@mindhub.com",
+			/*Client admin = new Client("Admin","01","admin01@mindhub.com",
 					passwordEncoder.encode("neuring"),UserRole.ADMIN);
 			clientRepository.save(admin);
 			Client cl = new Client("Melba", "Morel", "melba@mindhub.com",
@@ -47,8 +47,8 @@ public class HomebankingApplication {
 			clientLoan = new ClientLoan(50000.0,12);
 			cl.addClientLoan(clientLoan);
 			personal.addClientLoan(clientLoan);
-			Card melbaCardG = new Card(cl,CardType.DEBIT, "2314564", "547",CardColor.GOLD);
-			Card melbaCardT = new Card(cl,CardType.DEBIT, "2142564", "547",CardColor.TITANIUM);
+			Card melbaCardG = new Card(CardType.DEBIT, "2314564", "547",CardColor.GOLD);
+			Card melbaCardT = new Card(CardType.DEBIT, "2142564", "547",CardColor.TITANIUM);
 			clientLoanRepository.save(clientLoan);
 			cl.addCard(melbaCardT);
 			cl.addCard(melbaCardG);
@@ -75,12 +75,11 @@ public class HomebankingApplication {
 			ac = new Account("VIN003",LocalDate.now(),800);
 			cl.addAccount(ac);
 			accountRepository.save(ac);
-			Card zelbaCardS = new Card(cl,CardType.DEBIT, "9714564", "987",CardColor.SILVER);
+			Card zelbaCardS = new Card(CardType.DEBIT, "9714564", "987",CardColor.SILVER);
+			cl.addCard(zelbaCardS);
 			cardRepository.save(melbaCardG);
 			cardRepository.save(melbaCardT);
-			cardRepository.save(zelbaCardS);
-			cl.addCard(zelbaCardS);
-
+			cardRepository.save(zelbaCardS);*/
 		};
 	}
 }

@@ -1,9 +1,11 @@
 package com.mindhub.homebanking.controllers;
 
+import com.mindhub.homebanking.models.Account;
 import com.mindhub.homebanking.models.Transaction;
 import com.mindhub.homebanking.models.TransactionType;
 import com.mindhub.homebanking.repositories.AccountRepository;
-import com.mindhub.homebanking.repositories.TransactionRepository;
+import com.mindhub.homebanking.services.AccountService;
+import com.mindhub.homebanking.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,22 +22,28 @@ import java.util.Objects;
 @RequestMapping("/api")
 public class TransactionController {
     @Autowired
-    TransactionRepository transactionRepo;
+    TransactionService transactionService;
 
     @Autowired
-    AccountRepository accountRepo;
+    AccountService accountService;
 
     @Transactional
     @RequestMapping(path = "/transactions", method = RequestMethod.POST)
-    public ResponseEntity<Object> makeTransaction(@RequestParam String fromAccountNumber, @RequestParam String toAccountNumber, @RequestParam Double amount, @RequestParam String description,
+    public ResponseEntity<Object> makeTransaction(@RequestParam String fromAccountNumber, @RequestParam String toAccountNumber,
+                                                  @RequestParam Double amount, @RequestParam String description,
                                                   Authentication authentication){
-        if(accountRepo.findByNumber(fromAccountNumber).getClient().getEmail() != authentication.getName()){
+        Account sender = accountService.getAccountByNumber(fromAccountNumber);
+        Account receiver = accountService.getAccountByNumber(toAccountNumber);
+        if(authentication.getName() == null){
+            return new ResponseEntity<>("You're a not logged user",HttpStatus.FORBIDDEN);
+        }
+        if(sender.getClient().getEmail() != authentication.getName()){
             return new ResponseEntity<>("You don't own the sending account", HttpStatus.FORBIDDEN);
         }
-        if(accountRepo.findByNumber(toAccountNumber) == null){
+        if(receiver == null){
             return new ResponseEntity<>("Receiving account doesn't exist", HttpStatus.FORBIDDEN);
         }
-        if(amount.isNaN() || amount == 0){
+        if(amount.isNaN() || amount <= 0){
             return new ResponseEntity<>("Amount field is incomplete", HttpStatus.FORBIDDEN);
         }
         if(description.isBlank()){
@@ -44,15 +52,15 @@ public class TransactionController {
         if(Objects.equals(fromAccountNumber, toAccountNumber)){
             return new ResponseEntity<>("Sender and receiver are the same", HttpStatus.FORBIDDEN);
         }
-        if(accountRepo.findByNumber(fromAccountNumber).getBalance() < amount){
+        if(sender.getBalance() < amount){
             return new ResponseEntity<>("Stated amount is greater than the account's balance", HttpStatus.FORBIDDEN);
         }
-        Transaction transactionStart = new Transaction(TransactionType.DEBIT, amount, accountRepo.findByNumber(toAccountNumber).getNumber()+":"+description);
-        Transaction transactionEnd = new Transaction(TransactionType.CREDIT, amount, accountRepo.findByNumber(fromAccountNumber).getNumber()+":"+description);
-        accountRepo.findByNumber(fromAccountNumber).addTransactions(transactionStart);
-        accountRepo.findByNumber(toAccountNumber).addTransactions(transactionEnd);
-        transactionRepo.save(transactionEnd);
-        transactionRepo.save(transactionStart);
+        Transaction transactionStart = transactionService.generateNewTransaction(TransactionType.DEBIT, amount, receiver.getNumber(), description);
+        Transaction transactionEnd = transactionService.generateNewTransaction(TransactionType.CREDIT, amount, sender.getNumber(), description);
+        sender.addTransactions(transactionStart);
+        receiver.addTransactions(transactionEnd);
+        transactionService.saveTransaction(transactionEnd);
+        transactionService.saveTransaction(transactionStart);
 
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
