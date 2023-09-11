@@ -1,10 +1,12 @@
 package com.mindhub.homebanking.controllers;
 
 import com.mindhub.homebanking.models.Account;
+import com.mindhub.homebanking.models.Client;
 import com.mindhub.homebanking.models.Transaction;
 import com.mindhub.homebanking.models.TransactionType;
 import com.mindhub.homebanking.repositories.AccountRepository;
 import com.mindhub.homebanking.services.AccountService;
+import com.mindhub.homebanking.services.ClientService;
 import com.mindhub.homebanking.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,30 +29,37 @@ public class TransactionController {
     @Autowired
     AccountService accountService;
 
+    @Autowired
+    ClientService clientService;
+
     @Transactional
     @RequestMapping(path = "/transactions", method = RequestMethod.POST)
     public ResponseEntity<Object> makeTransaction(@RequestParam String fromAccountNumber, @RequestParam String toAccountNumber,
                                                   @RequestParam Double amount, @RequestParam String description,
                                                   Authentication authentication){
+        if(clientService.getClient(authentication.getName()) == null){
+            return new ResponseEntity<>("You aren't a registered client", HttpStatus.FORBIDDEN);
+        }
+        Client client = clientService.getClient(authentication.getName());
+        if(fromAccountNumber.isBlank() || accountService.getAccountByNumber(fromAccountNumber) == null){
+            return new ResponseEntity<>("The sending account doesn't exist", HttpStatus.FORBIDDEN);
+        }
+        if(toAccountNumber.isBlank() || accountService.getAccountByNumber(toAccountNumber) == null){
+            return new ResponseEntity<>("The receiving account doesn't exist", HttpStatus.FORBIDDEN);
+        }
+        if(Objects.equals(fromAccountNumber, toAccountNumber)){
+            return new ResponseEntity<>("Sender and receiver accounts are the same", HttpStatus.FORBIDDEN);
+        }
         Account sender = accountService.getAccountByNumber(fromAccountNumber);
         Account receiver = accountService.getAccountByNumber(toAccountNumber);
-        if(authentication.getName() == null){
-            return new ResponseEntity<>("You're a not logged user",HttpStatus.FORBIDDEN);
-        }
-        if(sender.getClient().getEmail() != authentication.getName()){
+        if(client != sender.getClient()){
             return new ResponseEntity<>("You don't own the sending account", HttpStatus.FORBIDDEN);
-        }
-        if(receiver == null){
-            return new ResponseEntity<>("Receiving account doesn't exist", HttpStatus.FORBIDDEN);
         }
         if(amount.isNaN() || amount <= 0){
             return new ResponseEntity<>("Amount field is incomplete", HttpStatus.FORBIDDEN);
         }
         if(description.isBlank()){
             return  new ResponseEntity<>("Description field is empty",HttpStatus.FORBIDDEN);
-        }
-        if(Objects.equals(fromAccountNumber, toAccountNumber)){
-            return new ResponseEntity<>("Sender and receiver are the same", HttpStatus.FORBIDDEN);
         }
         if(sender.getBalance() < amount){
             return new ResponseEntity<>("Stated amount is greater than the account's balance", HttpStatus.FORBIDDEN);

@@ -4,6 +4,7 @@ import com.mindhub.homebanking.dtos.LoanApplicationDTO;
 import com.mindhub.homebanking.dtos.LoanDTO;
 import com.mindhub.homebanking.models.*;
 import com.mindhub.homebanking.services.AccountService;
+import com.mindhub.homebanking.services.ClientService;
 import com.mindhub.homebanking.services.LoanService;
 import com.mindhub.homebanking.services.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,8 @@ public class LoanController {
     AccountService accountService;
     @Autowired
     TransactionService transactionService;
+    @Autowired
+    ClientService clientService;
 
     public LoanController() {}
 
@@ -38,41 +41,33 @@ public class LoanController {
     @Transactional
     @RequestMapping(path="/loans", method = RequestMethod.POST)
     public ResponseEntity<Object> addLoan(@RequestBody LoanApplicationDTO loan, Authentication authentication){
-        if(authentication == null){
-            return new ResponseEntity<>("You lack the credentials to perform this action", HttpStatus.FORBIDDEN);
+        if(clientService.getClient(authentication.getName()) == null){
+            return new ResponseEntity<>("You aren't a registered client", HttpStatus.FORBIDDEN);
         }
-        if(loan.getLoanId() == null){
+        Client client = clientService.getClient(authentication.getName());
+        if(loan.getLoanId() == null || loanService.loanCheck(loan.getLoanId())){
             return new ResponseEntity<>("Input a valid loan type", HttpStatus.FORBIDDEN);
         }
-        if(loan.getPayments() <= 0){
-            return new ResponseEntity<>("Choose one of the allowed number of payments", HttpStatus.FORBIDDEN);
-        }
-        if(loan.getAmount() <= 0){
-            return new ResponseEntity<>("State an amount higher than 0", HttpStatus.FORBIDDEN);
-        }
-        if(loanService.loanCheck(loan.getLoanId())){
-            return new ResponseEntity<>("The loan you are requesting doesn't exist", HttpStatus.FORBIDDEN);
-        }
         Loan verifiedLoan = loanService.getLoanById(loan.getLoanId());
-        if(loan.getAmount() > verifiedLoan.getMaxAmount() ){
-            return new ResponseEntity<>("Requested amount is higher than allowed", HttpStatus.FORBIDDEN);
-        }
-        if(!verifiedLoan.getPayments().contains(loan.getPayments())){
-            return new ResponseEntity<>("Choose one of the allowed number of payments", HttpStatus.FORBIDDEN);
-        }
-        if(accountService.getAccountByNumber(loan.getAccount()) == null){
-            return new ResponseEntity<>("The account your want to credit doesn't exist ", HttpStatus.FORBIDDEN);
+        if(loan.getAccount().isBlank() || accountService.getAccountByNumber(loan.getAccount()) == null){
+            return new ResponseEntity<>("Input an existing account", HttpStatus.FORBIDDEN);
         }
         Account verifiedAccount = accountService.getAccountByNumber(loan.getAccount());
         if(verifiedAccount.getClient().getEmail() != authentication.getName()){
             return new ResponseEntity<>("You don't own this account", HttpStatus.FORBIDDEN);
         }
+        if(!verifiedLoan.getPayments().contains(loan.getPayments())){
+            return new ResponseEntity<>("Choose one of the allowed number of payments", HttpStatus.FORBIDDEN);
+        }
+        if(loan.getAmount() <= 0 || loan.getAmount() > verifiedLoan.getMaxAmount() ){
+            return new ResponseEntity<>("State an amount higher than 0", HttpStatus.FORBIDDEN);
+        }
+
         Transaction transaction = transactionService.generateNewTransactionLoan(TransactionType.CREDIT, loan.getAmount(),
                 verifiedLoan.getName());
         ClientLoan clientLoan = loanService.generateNewClientLoan(loan.getAmount(),loan.getPayments());
         verifiedLoan.addClientLoan(clientLoan);
-        verifiedAccount.getClient().addClientLoan(clientLoan);
-
+        client.addClientLoan(clientLoan);
         verifiedAccount.addTransactions(transaction);
         transactionService.saveTransaction(transaction);
         loanService.saveClientLoan(clientLoan);
