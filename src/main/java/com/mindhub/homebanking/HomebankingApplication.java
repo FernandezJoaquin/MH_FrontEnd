@@ -28,7 +28,7 @@ public class HomebankingApplication {
 		return (args) -> {
 			// save a couple of customers
 			/*Client admin = new Client("Admin","01","admin01@mindhub.com",
-					passwordEncoder.encode("neuring"),UserRole.ADMIN);
+					passwordEncoder.encode("admin"),UserRole.ADMIN);
 			clientRepository.save(admin);
 			Client cl = new Client("Melba", "Morel", "melba@mindhub.com",
 					passwordEncoder.encode("lala"), UserRole.CLIENT);

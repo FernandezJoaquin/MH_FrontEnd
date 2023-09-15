@@ -21,7 +21,7 @@ public class CardController {
     @Autowired
     ClientService clientService;
 
-    @RequestMapping(path = "/clients/current/cards", method = RequestMethod.POST)
+    @PostMapping("/clients/current/cards")
     public ResponseEntity<Object> addCard(@RequestParam CardType cardType, @RequestParam CardColor cardColor,
                                           Authentication authentication) {
         if(clientService.getClient(authentication.getName()) == null){

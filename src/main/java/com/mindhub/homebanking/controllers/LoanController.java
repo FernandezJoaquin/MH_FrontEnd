@@ -12,12 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @RestController
@@ -34,12 +32,12 @@ public class LoanController {
 
     public LoanController() {}
 
-    @RequestMapping("/loans")
+    @GetMapping("/loans")
     public List<LoanDTO> getLoans(){
         return loanService.getLoans();
     }
     @Transactional
-    @RequestMapping(path="/loans", method = RequestMethod.POST)
+    @PostMapping("/loans")
     public ResponseEntity<Object> addLoan(@RequestBody LoanApplicationDTO loan, Authentication authentication){
         if(clientService.getClient(authentication.getName()) == null){
             return new ResponseEntity<>("You aren't a registered client", HttpStatus.FORBIDDEN);
@@ -53,7 +51,7 @@ public class LoanController {
             return new ResponseEntity<>("Input an existing account", HttpStatus.FORBIDDEN);
         }
         Account verifiedAccount = accountService.getAccountByNumber(loan.getAccount());
-        if(verifiedAccount.getClient().getEmail() != authentication.getName()){
+        if(!Objects.equals(client.getEmail(), authentication.getName())){
             return new ResponseEntity<>("You don't own this account", HttpStatus.FORBIDDEN);
         }
         if(!verifiedLoan.getPayments().contains(loan.getPayments())){

@@ -10,10 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -26,21 +23,21 @@ public class AccountController {
     private ClientService clientService;
 
 
-    @RequestMapping("/accounts")
+    @GetMapping("/accounts")
     public List<AccountDTO> getAccounts(){
         return accountService.getAccounts();
     }
-    @RequestMapping("/accounts/{id}")
+    @GetMapping("/accounts/{id}")
     public AccountDTO getAccount(@PathVariable Long id){
         return accountService.getAccountDTOById(id);
     }
 
-    @RequestMapping(path = "/clients/current/accounts", method = RequestMethod.GET)
+    @GetMapping("/clients/current/accounts")
     public List<AccountDTO> getCurrentAccounts(Authentication authentication){
         return  accountService.getCurrentAccounts(authentication);
     }
 
-    @RequestMapping(path = "/clients/current/accounts", method = RequestMethod.POST)
+    @PostMapping("/clients/current/accounts")
     public ResponseEntity<Object> addAccount(Authentication authentication){
         if(clientService.getClient(authentication.getName()) == null){
             return new ResponseEntity<>("This client doesn't exist",HttpStatus.FORBIDDEN);
